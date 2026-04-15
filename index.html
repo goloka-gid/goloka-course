@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мир Элли</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lora:ital,wght@0,400;1,500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+
+ <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8A2BE2">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW зарегистрирован:', reg.scope))
+                    .catch(err => console.log('SW ошибка:', err));
+            });
+        }
+    </script>
+</head>
+<body>
+
+    <div id="view-grid" class="view-section active-view">
+        <h1>✨ Путешествие Элли</h1>
+        <div class="grid" id="main-grid"></div>
+        <div class="reset-link" onclick="confirmReset()">сбросить прогресс</div>
+    </div>
+
+    <div id="view-menu" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+            <button class="simple-back" onclick="goHome()">⬅ К карте дней</button>
+            <button class="simple-back" onclick="openInstructions()" style="font-size: 20px; padding: 5px; background: none; border: none; cursor: pointer;">❓</button>
+        </div>
+        <h2 id="menu-title" style="margin-top: 0;"></h2>
+        
+        <div class="menu-container">
+            <div class="menu-btn" onclick="openContent('story')">
+                <span class="menu-icon">📖</span>
+                <div>
+                    <div style="font-weight:bold">Сказочная история</div>
+                    <div style="font-size:11px; opacity:0.7">Читать и слушать</div>
+                </div>
+            </div>
+
+            <div class="menu-btn" onclick="openContent('video')">
+                <span class="menu-icon">🎬</span>
+                <div>
+                    <div style="font-weight:bold">Смотреть видео</div>
+                    <div style="font-size:11px; opacity:0.7">Волшебный мультфильм</div>
+                </div>
+            </div>
+
+            <div class="menu-btn" onclick="openContent('presentation')">
+                <span class="menu-icon">🖼️</span>
+                <div>
+                    <div style="font-weight:bold">Презентация</div>
+                    <div style="font-size:11px; opacity:0.7">Материалы урока</div>
+                </div>
+            </div>
+
+            <div class="menu-btn" onclick="openContent('song')">
+                <span class="menu-icon">🎵</span>
+                <div>
+                    <div style="font-weight:bold">Песенка дня</div>
+                    <div style="font-size:11px; opacity:0.7">Танцуй и пой</div>
+                </div>
+            </div>
+            
+            <div class="menu-btn" onclick="openContent('child')">
+                <span class="menu-icon">👶</span>
+                <div>
+                    <div style="font-weight:bold">Практика для детей</div>
+                    <div style="font-size:11px; opacity:0.7">до 15 лет</div>
+                </div>
+            </div>
+
+            <div class="menu-btn" onclick="openContent('adult')">
+                <span class="menu-icon">🧘‍♀️</span>
+                <div>
+                    <div style="font-weight:bold">Взрослая практика</div>
+                    <div style="font-size:11px; opacity:0.7">Осознанность для тебя</div>
+                </div>
+            </div>
+
+            <div class="menu-btn" onclick="openContent('homework')">
+                <span class="menu-icon">✍️</span>
+                <div>
+                    <div style="font-weight:bold">Домашнее задание</div>
+                    <div style="font-size:11px; opacity:0.7">Отправить на проверку</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-content" class="view-section">
+        <div class="header-fixed">
+            <button class="nav-btn" onclick="goHome()">🏠 Дни</button>
+            <span id="header-title" style="font-size:12px; font-weight:bold; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+            <button class="nav-btn" onclick="goBackToMenu()">🔙 Меню</button>
+        </div>
+
+        <div class="scroll-wrapper" id="scroll-box">
+            <div style="padding: 15px;">
+                
+                <div id="video-area" style="display:none;">
+                    <div class="section-box" style="text-align: center;">
+                        <h3 style="color: var(--accent); margin:0 0 10px 0;">🎬 Приятного просмотра!</h3>
+                        <div class="video-wrapper">
+                            <video id="video-player" controls playsinline></video>
+                        </div>
+                    </div>
+                </div>
+
+                <img id="main-image" src="" class="book-media" style="display:none;" onerror="this.style.display='none'">
+
+                <div class="section-box" id="text-box" style="display:none;">
+                    <div id="text-display" class="magic-text"></div>
+                </div>
+
+                <div class="section-box" id="audio-box" style="display:none;">
+                    <h3 id="audio-title" style="color: var(--accent); margin-top:0; font-size: 16px;">🎧 Слушать</h3>
+                    <audio id="audio-player" controls></audio>
+                </div>
+                <div class="section-box" id="homework-box" style="display:none;">
+                    <h3 style="color: var(--accent); margin-top:0; font-size: 16px;">✍️ Домашнее задание</h3>
+                    <div id="homework-text" style="margin-bottom: 15px; font-size: 14px; color: #555;">Загрузка задания...</div>
+                    <textarea id="homework-input" placeholder="Напишите ваш ответ здесь..." style="width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; resize: vertical; box-sizing: border-box;"></textarea>
+                    <button onclick="submitHomework()" style="margin-top: 15px; width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;">Отправить на проверку</button>
+                    <p id="homework-status" style="margin-top: 10px; font-size: 14px; text-align: center; color: #28a745; display: none;">Задание отправлено!</p>
+                </div>
+
+            </div>
+        </div>
+        
+        <button class="fab-scroll" id="scroll-btn" onclick="toggleAutoScroll()">✨</button>
+    </div>
+
+    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ (ПОРЯДОК ВАЖЕН!) -->
+    <script src="config.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>
