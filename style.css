@@ -50,6 +50,11 @@ h2 { font-size: 20px; }
 }
 .day-card:active { transform: scale(0.95); }
 
+/* Выравнивание последнего элемента (Дня 10) по центру в сетке из 3 колонок */
+.day-card:nth-child(10) {
+    grid-column: 2; /* Помещает карточку в среднюю (вторую) колонку */
+}
+
 /* Стиль прочитанного дня */
 .day-card.completed { background: rgba(255, 248, 220, 0.85); border-color: var(--gold); }
 .day-card.completed::after {
