@@ -2,10 +2,76 @@
 
 let currentDayNum = 1;
 let readDays = JSON.parse(localStorage.getItem('elli_progress')) || [];
-let unlockedDays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+let unlockedDays = [1]; // По умолчанию открыт только 1-й день
+
+let userHomeworkProgress = {}; // Сохраняем статусы ДЗ из Google Apps Script
+// ВНИМАНИЕ: ВСТАВЬТЕ НОВУЮ ССЫЛКУ СЮДА:
+const GOOGLE_APP_SCRIPT_URL = " https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
 
 let isScrolling = false;
 let scrollInterval;
+
+// --- ИНИЦИАЛИЗАЦИЯ И АВТОРИЗАЦИЯ ---
+
+window.onload = () => {
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedEmail) {
+        document.getElementById('auth-box').style.display = 'none';
+        document.getElementById('resume-btn').style.display = 'inline-block';
+        fetchProgress(savedEmail);
+    }
+};
+
+async function loginAndStart() {
+    const emailInput = document.getElementById('user-email-input').value.trim();
+    if (!emailInput || !emailInput.includes('@')) {
+        alert("Пожалуйста, введите корректный Email.");
+        return;
+    }
+    
+    localStorage.setItem('userEmail', emailInput);
+    document.getElementById('auth-box').style.display = 'none';
+    
+    await fetchProgress(emailInput);
+    showGrid();
+}
+
+async function fetchProgress(email) {
+    document.getElementById('loading-box').style.display = 'block';
+    if(document.getElementById('resume-btn')) document.getElementById('resume-btn').style.display = 'none';
+
+    try {
+        const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getProgress&email=${encodeURIComponent(email)}`);
+        const data = await response.json();
+        
+        if (data && data.progress) {
+            userHomeworkProgress = data.progress;
+            calculateUnlockedDays();
+        }
+    } catch (error) {
+        console.error("Ошибка при загрузке прогресса:", error);
+    }
+
+    document.getElementById('loading-box').style.display = 'none';
+    if(document.getElementById('resume-btn')) document.getElementById('resume-btn').style.display = 'inline-block';
+}
+
+function calculateUnlockedDays() {
+    unlockedDays = [1]; // День 1 открыт всегда
+    for (let day = 1; day <= 10; day++) {
+        // Если за предыдущий день статус "Одобрено", открываем текущий
+        if (userHomeworkProgress[day] && userHomeworkProgress[day].toLowerCase().includes("одобрено")) {
+            if (!unlockedDays.includes(day + 1) && day + 1 <= 10) {
+                unlockedDays.push(day + 1);
+            }
+        }
+    }
+}
+
+function showGrid() {
+    renderGrid();
+    switchView('view-grid');
+}
 
 // --- 1. ОТРИСОВКА СЕТКИ ---
 function renderGrid() {
@@ -53,7 +119,11 @@ document.addEventListener('DOMContentLoaded', renderGrid);
 
 // Обработка клика по дню
 function handleDayClick(dayNum, name, isLocked, isRead) {
-    openDayMenu(dayNum, name);
+    if (isLocked) {
+        showWarningModal(dayNum);
+    } else {
+        openDayMenu(dayNum, name);
+    }
 }
 
 // --- 2. ОТКРЫТИЕ МЕНЮ ДНЯ ---
