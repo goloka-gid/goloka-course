@@ -324,7 +324,7 @@ async function submitHomework() {
     }
 
     const userEmail = localStorage.getItem('userEmail') || 'unknown';
-    const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7KdRDInC76sew3pKHhDgPjfhUv3e4zlRNqOz-gGNMb90yGY8-RJiMkt4mXnZcZqPD/exec";
+    const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
 
     try {
         const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
