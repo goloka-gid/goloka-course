@@ -352,6 +352,9 @@ function showWarningModal(lockedDayNum) {
             textElement.innerHTML = `Чтобы открыть <b>День ${lockedDayNum}</b>, вам необходимо отправить Домашнее задание за <b>День ${prevDay}</b>.`;
         } else if (prevStatus.toLowerCase().includes("на проверке")) {
             textElement.innerHTML = `Ваше Домашнее задание за <b>День ${prevDay}</b> находится <b>на проверке</b>.<br><br>Пожалуйста, подождите, пока преподаватель не проверит его.`;
+        } else if (prevStatus.toLowerCase().includes("переделать")) {
+            // НОВАЯ ЛОГИКА ДЛЯ СТАТУСА "ПЕРЕДЕЛАТЬ"
+            textElement.innerHTML = `Преподаватель попросил <b>переделать</b> домашнее задание за <b>День ${prevDay}</b>. 😔<br><br>Пожалуйста, вернитесь в День ${prevDay}, напишите исправленный ответ и отправьте его заново.`;
         } else {
             textElement.innerHTML = `Доступ к <b>Дню ${lockedDayNum}</b> пока закрыт.`;
         }
