@@ -6,7 +6,7 @@ let unlockedDays = [1];
 
 let userHomeworkProgress = {}; 
 // ВНИМАНИЕ: ВСТАВЬТЕ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT:
-const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqH6V-zvYBKlRuyW7AbePALepOwE_kJPItQWvXhTucvZIZLhkXYXmIvyFiF45Sw6ME/exec";
+const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
 
 let isScrolling = false;
 let scrollInterval;
@@ -224,7 +224,7 @@ async function openContent(type) {
                 const response = await fetch(`texts/${filePrefix}_homework.html`);
                 if (response.ok) {
                     const text = await response.text();
-                    const formattedHtml = formatText(text, currentDayNum);
+                    const formattedHtml = text;
                     
                     const parts = formattedHtml.split(/\[ВОПРОС\]/i);
                     let finalHtml = parts[0]; 
@@ -249,12 +249,21 @@ async function openContent(type) {
                     }
                     if (submitBtn) submitBtn.style.display = 'block';
                     
+                    const oldInput = document.getElementById('homework-input');
+                    if (oldInput) oldInput.style.display = 'none';
+                    
                     const currentStatus = userHomeworkProgress[currentDayNum];
                     if (currentStatus && currentStatus.status && statusBox) {
                         if (currentStatus.status.toLowerCase().includes("на проверке")) {
                             statusBox.innerHTML = "⏳ Ваше задание находится на проверке.";
                             statusBox.style.color = "#d4af37";
                             statusBox.style.display = 'block';
+                            if (submitBtn) submitBtn.style.display = 'none'; 
+                            
+                            document.querySelectorAll('.homework-input-field').forEach(ta => {
+                                ta.disabled = true;
+                                ta.style.backgroundColor = '#f5f5f5';
+                            });
                         } else if (currentStatus.status.toLowerCase().includes("одобрено")) {
                             statusBox.innerHTML = "✅ Задание проверено и одобрено!";
                             statusBox.style.color = "#28a745";
@@ -348,7 +357,7 @@ function goHome() {
     switchView('view-grid');
 }
 
-function stopScroll() {} // Заглушка, если кнопки автоскролла нет
+function stopScroll() {} 
 
 // --- МОДАЛЬНЫЕ ОКНА И ЛОГИКА ДОСТУПА ---
 
@@ -446,10 +455,15 @@ async function submitHomework() {
             comment: ""
         };
         
+        if (btn) btn.style.display = 'none';
+        textareas.forEach(ta => {
+            ta.disabled = true;
+            ta.style.backgroundColor = '#f5f5f5';
+        });
+        
     } catch (error) {
         console.error("Ошибка при отправке ДЗ:", error);
         alert("Произошла ошибка при отправке. Пожалуйста, попробуйте позже.");
-    } finally {
         if (btn) {
             btn.innerText = "Отправить на проверку";
             btn.disabled = false;
