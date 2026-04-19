@@ -41,7 +41,15 @@ async function fetchProgress(email) {
     if(document.getElementById('resume-btn')) document.getElementById('resume-btn').style.display = 'none';
 
     try {
-        const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getProgress&email=${encodeURIComponent(email)}`);
+        // Добавляем timestamp (t=...), чтобы мобильный браузер не кэшировал GET-запрос
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getProgress&email=${encodeURIComponent(email)}&t=${timestamp}`, {
+            cache: 'no-store',
+            headers: {
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache'
+            }
+        });
         const data = await response.json();
         
         if (data && data.progress) {
