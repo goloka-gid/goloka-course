@@ -6,7 +6,7 @@ let unlockedDays = [1];
 
 let userHomeworkProgress = {}; 
 // ВНИМАНИЕ: ВСТАВЬТЕ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT:
-const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
+const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwQfK1nmnK5TrqxabtXqO-Kum4QxKW65HOV4_gDGqWf8Gkr7CPtACDnikFJpNptog_/exec";
 
 let isScrolling = false;
 let scrollInterval;
