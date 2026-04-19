@@ -9,7 +9,7 @@
     
     <link rel="stylesheet" href="style.css">
 
- <!-- PWA Settings -->
+    <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8A2BE2">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -27,16 +27,37 @@
 </head>
 <body>
 
-    <div id="view-grid" class="view-section active-view">
+    <div id="start-screen" class="view-section active-view" style="text-align: center; padding: 40px 20px;">
+        <div class="logo" style="font-size: 48px; margin-bottom: 20px;">Г</div>
+        <h1>ГОЛОКА</h1>
+        <p class="subtitle" style="margin-bottom: 5px;">Детский сказочный курс</p>
+        <p class="subtitle" style="font-size: 14px; opacity: 0.8; margin-bottom: 30px;">Пробуждение через сказки</p>
+        
+        <div id="auth-box">
+            <p style="font-size: 14px; margin-bottom: 10px;">Для сохранения прогресса введите ваш Email:</p>
+            <input type="email" id="user-email-input" placeholder="Введите ваш Email" style="padding: 12px; width: 80%; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; margin-bottom: 15px; box-sizing: border-box;">
+            <br>
+            <button class="access-btn" onclick="loginAndStart()">Войти и начать</button>
+        </div>
+        
+        <div id="loading-box" style="display: none; margin-top: 20px;">
+            <p style="font-size: 16px; color: var(--primary);">⏳ Загрузка прогресса...</p>
+        </div>
+
+        <button id="resume-btn" class="access-btn" style="display: none;" onclick="showGrid()">Продолжить погружение</button>
+
+        <div style="margin-top:30px; font-size:12px; opacity:0.6;">v2.0 • 10-дневная версия</div>
+    </div>
+
+    <div id="view-grid" class="view-section">
         <h1>✨ Путешествие Элли</h1>
         <div class="grid" id="main-grid"></div>
-        <div class="reset-link" onclick="confirmReset()">сбросить прогресс</div>
+        <div class="reset-link" onclick="confirmReset()">выйти / сбросить аккаунт</div>
     </div>
 
     <div id="view-menu" class="view-section">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
             <button class="simple-back" onclick="goHome()">⬅ К карте дней</button>
-            <button class="simple-back" onclick="openInstructions()" style="font-size: 20px; padding: 5px; background: none; border: none; cursor: pointer;">❓</button>
         </div>
         <h2 id="menu-title" style="margin-top: 0;"></h2>
         
@@ -131,8 +152,8 @@
                 <div class="section-box" id="homework-box" style="display:none;">
                     <h3 style="color: var(--accent); margin-top:0; font-size: 16px;">✍️ Домашнее задание</h3>
                     <div id="homework-text" style="margin-bottom: 15px; font-size: 14px; color: #555;">Загрузка задания...</div>
-                    <textarea id="homework-input" placeholder="Напишите ваш ответ здесь..." style="width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; resize: vertical; box-sizing: border-box;"></textarea>
-                    <button onclick="submitHomework()" style="margin-top: 15px; width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;">Отправить на проверку</button>
+                    <textarea id="homework-input" placeholder="Напишите ваш ответ здесь..." style="width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; font-family: inherit; resize: vertical; box-sizing: border-box;"></textarea>
+                    <button onclick="submitHomework()" class="access-btn" style="margin-top: 15px;">Отправить на проверку</button>
                     <p id="homework-status" style="margin-top: 10px; font-size: 14px; text-align: center; color: #28a745; display: none;">Задание отправлено!</p>
                 </div>
 
@@ -142,7 +163,18 @@
         <button class="fab-scroll" id="scroll-btn" onclick="toggleAutoScroll()">✨</button>
     </div>
 
-    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ (ПОРЯДОК ВАЖЕН!) -->
+    <!-- Модальное окно предупреждения (перескок / проверка ДЗ) -->
+    <div id="warning-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color:var(--accent); margin-top:0;">Доступ закрыт</h3>
+            <p id="warning-modal-text">Нельзя перескочить, не пройдя предыдущий день.</p>
+            <div style="display:flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                <button class="modal-btn" id="warn-btn-back" onclick="closeWarningModal()">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ -->
     <script src="config.js"></script>
     <script src="data.js"></script>
     <script src="app.js"></script>
