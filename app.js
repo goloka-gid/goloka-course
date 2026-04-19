@@ -5,8 +5,7 @@ let readDays = JSON.parse(localStorage.getItem('elli_progress')) || [];
 let unlockedDays = [1]; // По умолчанию открыт только 1-й день
 
 let userHomeworkProgress = {}; // Сохраняем статусы ДЗ из Google Apps Script
-// ВНИМАНИЕ: ВСТАВЬТЕ НОВУЮ ССЫЛКУ СЮДА:
-const GOOGLE_APP_SCRIPT_URL = " https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
+const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
 
 let isScrolling = false;
 let scrollInterval;
@@ -98,24 +97,30 @@ function renderGrid() {
     });
 
     // ПРОВЕРКА ФИНАЛА
-    // Если открыты все 10 дней
-    const allUnlocked = items.every((_, i) => unlockedDays.includes(i + 1));
-    
-    if (allUnlocked) {
+    if (readDays.length >= 10 && unlockedDays.includes(10)) {
         const finalCard = document.createElement('div');
-        finalCard.className = 'day-card final-day-card';
-        finalCard.onclick = () => openDayMenu('final', 'ФИНАЛ');
-        
+        finalCard.className = `day-card completed`;
+        finalCard.style.gridColumn = '1 / -1'; 
+        finalCard.style.marginTop = '10px';
+        finalCard.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+        finalCard.style.color = '#fff';
+        finalCard.style.border = 'none';
+
+        finalCard.onclick = () => {
+            currentDayNum = 'final';
+            switchView('view-menu');
+            document.getElementById('menu-title').innerText = "🏆 Вершина Пути";
+            loadContent('final');
+        };
+
         finalCard.innerHTML = `
-            <div style="font-size:11px; font-weight:bold; color: rgba(255,255,255,0.9);">ГРАНД ФИНАЛ</div>
+            <div style="font-size:12px; font-weight:bold; margin-bottom:5px;">ПОЗДРАВЛЯЕМ!</div>
             <div class="day-icon">🏆</div>
             <div class="day-name">Вершина Пути</div>
         `;
         grid.appendChild(finalCard);
     }
 }
-// Запускаем отрисовку при загрузке
-document.addEventListener('DOMContentLoaded', renderGrid);
 
 // Обработка клика по дню
 function handleDayClick(dayNum, name, isLocked, isRead) {
@@ -133,193 +138,135 @@ function openDayMenu(num, name) {
     switchView('view-menu');
     document.getElementById('menu-title').innerText = `День ${num}: ${name}`;
 
-    // Сохраняем, что день открыт
     if (!readDays.includes(num)) {
         readDays.push(num);
         localStorage.setItem('elli_progress', JSON.stringify(readDays));
-        renderGrid();
     }
 }
 
-// --- 3. ЗАГРУЗКА КОНТЕНТА (HTML, ВИДЕО, АУДИО) ---
+// --- 3. ОТКРЫТИЕ КОНТЕНТА ---
 async function openContent(type) {
     switchView('view-content');
-    stopScroll(); 
-
-    const container = document.getElementById('scroll-box');
-    container.scrollTop = 0;
-    const titleLabel = document.getElementById('header-title');
     
-    const videoArea = document.getElementById('video-area');
-    const videoPlayer = document.getElementById('video-player');
-    const textBox = document.getElementById('text-box');
-    const textDisplay = document.getElementById('text-display');
-    const audioBox = document.getElementById('audio-box');
-    const audioPlayer = document.getElementById('audio-player');
-    const audioTitle = document.getElementById('audio-title');
-    const mainImage = document.getElementById('main-image');
-    const scrollBtn = document.getElementById('scroll-btn');
-
-    videoPlayer.pause();
-    audioPlayer.pause();
-    videoArea.style.display = 'none';
-    textBox.style.display = 'none';
-    audioBox.style.display = 'none';
-    mainImage.style.display = 'none';
-    const homeworkBox = document.getElementById('homework-box');
-    if (homeworkBox) homeworkBox.style.display = 'none';
-    scrollBtn.classList.remove('visible');
-    textDisplay.innerHTML = ""; 
-
-    // Определяем префикс файла (если финал, то особое имя, иначе dayN)
-    const filePrefix = currentDayNum === 'final' ? 'final' : `day${currentDayNum}`;
-
-    // 1. ИСТОРИЯ
-    if (type === 'story') {
-        titleLabel.innerText = "📖 История";
-        await loadTextContent(`texts/${filePrefix}_story.html`); 
-        
-        audioBox.style.display = 'block';
-        audioTitle.innerText = "🎧 Слушать сказку";
-        audioPlayer.src = `audio/${filePrefix}_story.mp3`;
-        scrollBtn.classList.add('visible');
-    } 
-    // 2. ВИДЕО
-    else if (type === 'video') {
-        titleLabel.innerText = "🎬 Видео";
-        videoArea.style.display = 'block';
-        // Если финал видео
-        const videoName = currentDayNum === 'final' ? 'final' : `day${currentDayNum}`;
-        videoPlayer.src = `videos/${videoName}.mp4`;
-    } 
-    // 3. ПЕСНЯ
-    else if (type === 'song') {
-        titleLabel.innerText = "🎵 Песенка";
-        const imgName = currentDayNum === 'final' ? 'final' : `day${currentDayNum}`;
-        mainImage.src = `images/${imgName}.jpg`;
-        mainImage.style.display = 'block';
-        
-        audioBox.style.display = 'block';
-        audioTitle.innerText = "🎧 Слушать песенку";
-        audioPlayer.src = `audio/${filePrefix}_song.mp3`;
-    } 
-    // 4. ДЕТИ
-    else if (type === 'child') {
-        titleLabel.innerText = "👶 Практика (Дети)";
-        await loadTextContent(`texts/${filePrefix}_child.html`);
-        
-        audioBox.style.display = 'block';
-        audioTitle.innerText = "🎧 Слушать практику";
-        audioPlayer.src = `audio/${filePrefix}_child.mp3`;
-        scrollBtn.classList.add('visible');
-    } 
-    // 5. ВЗРОСЛЫЕ
-    else if (type === 'adult') {
-        titleLabel.innerText = "🧘‍♀️ Практика (Взр)";
-        await loadTextContent(`texts/${filePrefix}_adult.html`);
-        
-        audioBox.style.display = 'block';
-        audioTitle.innerText = "🎧 Слушать практику";
-        audioPlayer.src = `audio/${filePrefix}_adult.mp3`;
-        scrollBtn.classList.add('visible');
-    }
-            // 6. ПРЕЗЕНТАЦИЯ
-    else if (type === 'presentation') {
-        titleLabel.innerText = "🖼️ Презентация";
-        textBox.style.display = 'block';
-        try {
-            const response = await fetch(`texts/${filePrefix}_presentation.html`);
-            if (response.ok) {
-                const html = await response.text();
-                document.getElementById('text-display').innerHTML = html;
-            } else {
-                throw new Error("Not found");
-            }
-        } catch (e) {
-            document.getElementById('text-display').innerHTML = `<p style="text-align:center;">Здесь будет презентация для урока ${currentDayNum}</p><p style="text-align:center; color:#888;">(Добавьте файл texts/${filePrefix}_presentation.html с iframe или изображениями)</p>`;
-        }
-    }
-    // 7. ДОМАШНЕЕ ЗАДАНИЕ
-    else if (type === 'homework') {
-        titleLabel.innerText = "✍️ Домашнее задание";
-        const homeworkBox = document.getElementById('homework-box');
-        if (homeworkBox) {
-            homeworkBox.style.display = 'block';
-            let hwText = `<strong>Задание для урока ${currentDayNum}:</strong><br>Пожалуйста, опишите, как прошла ваша волшебная практика.`;
-            
-            // Пытаемся загрузить индивидуальный текст задания, если он есть
-            try {
-                const response = await fetch(`texts/${filePrefix}_homework.html`);
-                if (response.ok) {
-                    hwText = await response.text();
-                }
-            } catch(e) {}
-            
-            document.getElementById('homework-text').innerHTML = hwText;
-            document.getElementById('homework-input').value = '';
-            document.getElementById('homework-status').style.display = 'none';
-        }
-    }
+    const item = currentDayNum === 'final' ? items[items.length-1] : items[currentDayNum - 1];
     
-    if (audioBox.style.display === 'block') audioPlayer.load();
-}
+    let title = "";
+    if(type === 'story') title = "Сказочная история";
+    if(type === 'video') title = "Смотреть видео";
+    if(type === 'song') title = "Песенка дня";
+    if(type === 'child') title = "Практика для детей";
+    if(type === 'adult') title = "Взрослая практика";
+    if(type === 'presentation') title = "Презентация";
+    if(type === 'homework') title = "Домашнее задание";
 
-async function openInstructions() {
-    switchView('view-content');
-    stopScroll();
+    document.getElementById('header-title').innerText = `${currentDayNum === 'final' ? '🏆' : 'ДЕНЬ ' + currentDayNum} | ${title}`;
 
-    document.getElementById('header-title').innerText = "❓ Инструкция";
-    document.getElementById('video-area').style.display = 'none';
+    document.getElementById('text-box').style.display = 'none';
     document.getElementById('audio-box').style.display = 'none';
     document.getElementById('main-image').style.display = 'none';
-    
-    const homeworkBox = document.getElementById('homework-box');
-    if (homeworkBox) homeworkBox.style.display = 'none';
-    
-    document.getElementById('text-box').style.display = 'block';
-    const textDisplay = document.getElementById('text-display');
-    const scrollBtn = document.getElementById('scroll-btn');
+    document.getElementById('video-area').style.display = 'none';
+    document.getElementById('homework-box').style.display = 'none';
 
-    await loadTextContent('texts/instructions.html');
-    scrollBtn.classList.add('visible');
-}
-
-// Загрузка текста и форматирование картинок
-async function loadTextContent(url) {
-    const textBox = document.getElementById('text-box');
-    const textDisplay = document.getElementById('text-display');
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error();
-        let html = await response.text();
-        html = formatText(html, currentDayNum);
-        textDisplay.innerHTML = html;
-        textBox.style.display = 'block';
-    } catch (e) {
-        textBox.style.display = 'block';
-        textDisplay.innerHTML = "<p style='text-align:center'>Текст пока недоступен.</p>";
-    }
-}
-
-// --- НАВИГАЦИЯ ---
-function goHome() {
     stopScroll();
-    document.getElementById('video-player').pause();
-    document.getElementById('audio-player').pause();
-    switchView('view-grid');
-    renderGrid(); 
+
+    // Специальная логика для домашнего задания
+    if (type === 'homework') {
+        document.getElementById('homework-box').style.display = 'block';
+        document.getElementById('homework-text').innerHTML = "Загрузка задания...";
+        document.getElementById('homework-status').style.display = 'none';
+        try {
+            const response = await fetch(`texts/day${currentDayNum}_homework.html`);
+            if (response.ok) {
+                const text = await response.text();
+                document.getElementById('homework-text').innerHTML = formatText(text, currentDayNum);
+            } else {
+                document.getElementById('homework-text').innerHTML = "Задание для этого дня скоро появится.";
+            }
+        } catch (e) {
+            document.getElementById('homework-text').innerHTML = "Задание для этого дня скоро появится.";
+        }
+        return;
+    }
+
+    // Если презентация, грузим HTML
+    if (type === 'presentation') {
+        document.getElementById('text-box').style.display = 'block';
+        document.getElementById('text-display').innerHTML = "Загрузка...";
+        try {
+            const response = await fetch(`texts/day${currentDayNum}_presentation.html`);
+            if (response.ok) {
+                const text = await response.text();
+                document.getElementById('text-display').innerHTML = formatText(text, currentDayNum);
+            } else {
+                document.getElementById('text-display').innerHTML = "Материалы скоро появятся.";
+            }
+        } catch (e) {
+            document.getElementById('text-display').innerHTML = "Материалы скоро появятся.";
+        }
+        return;
+    }
+
+    if (type === 'video') {
+        document.getElementById('video-area').style.display = 'block';
+        const vp = document.getElementById('video-player');
+        vp.src = `videos/day${currentDayNum}.mp4`;
+        vp.play().catch(e => console.log('Auto-play prevented'));
+        return;
+    }
+
+    if (type === 'story') {
+        document.getElementById('main-image').src = `images/day${currentDayNum}.jpg`;
+        document.getElementById('main-image').style.display = 'block';
+        
+        document.getElementById('audio-box').style.display = 'block';
+        document.getElementById('audio-player').src = `audios/day${currentDayNum}.mp3`;
+        
+        document.getElementById('text-box').style.display = 'block';
+        document.getElementById('text-display').innerHTML = "Загрузка текста...";
+        
+        try {
+            const response = await fetch(`texts/day${currentDayNum}.html`);
+            if (response.ok) {
+                const text = await response.text();
+                document.getElementById('text-display').innerHTML = formatText(text, currentDayNum);
+                setupVideoObserver();
+            } else {
+                document.getElementById('text-display').innerHTML = "Текст скоро появится.";
+            }
+        } catch (e) {
+            document.getElementById('text-display').innerHTML = "Текст скоро появится.";
+        }
+        return;
+    }
+
+    // Другие типы (аудио)
+    document.getElementById('audio-box').style.display = 'block';
+    const ap = document.getElementById('audio-player');
+    
+    if (type === 'song') ap.src = `audios/day${currentDayNum}_song.mp3`;
+    if (type === 'child') ap.src = `audios/day${currentDayNum}_child.mp3`;
+    if (type === 'adult') ap.src = `audios/day${currentDayNum}_adult.mp3`;
+
+    document.getElementById('main-image').src = `images/day${currentDayNum}_${type}.jpg`;
+    document.getElementById('main-image').style.display = 'block';
+    
+    ap.play().catch(e=>console.log(e));
 }
 
-function goBackToMenu() {
-    stopScroll();
-    document.getElementById('video-player').pause();
-    document.getElementById('audio-player').pause();
-    // Если мы зашли в инструкцию, вернемся в сетку
-    if (document.getElementById('header-title').innerText === "❓ Инструкция") {
-        goHome();
-    } else {
-        openDayMenu(currentDayNum, items[currentDayNum === 'final' ? items.length - 1 : currentDayNum - 1].n);
-    }
+function setupVideoObserver() {
+    const videos = document.querySelectorAll('#text-display video');
+    if (videos.length === 0) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.play().catch(e => console.log('Autoplay blocked', e));
+            } else {
+                entry.target.pause();
+            }
+        });
+    }, { threshold: 0.1 });
+    videos.forEach(video => observer.observe(video));
 }
 
 function switchView(viewId) {
@@ -333,41 +280,53 @@ function formatText(text, dayNum) {
         const suffix = p1 ? `_${p1}` : ''; 
         return `<img src="images/day${dayNum}${suffix}.jpg" class="book-media" onerror="this.style.display='none'">`;
     });
-
+    html = html.replace(/\[GIF(\d*)\]/g, (match, p1) => {
+        const suffix = p1 ? `_${p1}` : '';
+        return `<img src="images/day${dayNum}${suffix}.gif" class="book-media" onerror="this.style.display='none'">`;
+    });
     html = html.replace(/\[VID(\d*)\]/g, (match, p1) => {
         const suffix = p1 ? `_${p1}` : '';
-        return `
-        <div class="video-wrapper book-media">
-            <video controls playsinline preload="metadata">
-                <source src="videos/day${dayNum}${suffix}.mp4" type="video/mp4">
-            </video>
-        </div>`;
+        return `<video src="videos/day${dayNum}${suffix}.mp4" class="book-media" autoplay muted loop playsinline onerror="this.style.display='none'"></video>`;
     });
     return html;
 }
 
-// --- АВТОСКРОЛЛ ---
-function toggleAutoScroll() {
-    const btn = document.getElementById('scroll-btn');
-    const container = document.getElementById('scroll-box');
+function goBackToMenu() {
+    stopScroll();
+    document.getElementById('audio-player').pause();
+    document.getElementById('video-player').pause();
+    switchView('view-menu');
+}
 
+function goHome() {
+    stopScroll();
+    document.getElementById('audio-player').pause();
+    document.getElementById('video-player').pause();
+    switchView('view-grid');
+}
+
+function toggleAutoScroll() {
+    const container = document.getElementById('scroll-box');
+    const btn = document.getElementById('scroll-btn');
+    
     if (isScrolling) {
-        stopScroll();
+        clearInterval(scrollInterval);
+        btn.classList.remove('active');
     } else {
-        isScrolling = true;
-        btn.classList.add('active');
         scrollInterval = setInterval(() => {
-            container.scrollBy(0, 1);
-            if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
+            container.scrollTop += 1; 
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
                 stopScroll();
             }
-        }, 30);
+        }, 35);
+        btn.classList.add('active');
     }
+    isScrolling = !isScrolling;
 }
 
 function stopScroll() {
-    isScrolling = false;
     clearInterval(scrollInterval);
+    isScrolling = false;
     const btn = document.getElementById('scroll-btn');
     if(btn) btn.classList.remove('active');
 }
@@ -376,12 +335,45 @@ function stopScroll() {
 document.getElementById('scroll-box').addEventListener('touchstart', stopScroll, {passive: true});
 document.getElementById('scroll-box').addEventListener('wheel', stopScroll, {passive: true});
 
+
+// --- МОДАЛЬНЫЕ ОКНА И ЛОГИКА ДОСТУПА ---
+
+// Окно предупреждения (проверка ДЗ / перескок)
+function showWarningModal(lockedDayNum) {
+    const modal = document.getElementById('warning-modal');
+    const textElement = document.getElementById('warning-modal-text');
+    
+    // Проверяем статус ДЗ за предыдущий день
+    const prevDay = lockedDayNum - 1;
+    const prevStatus = userHomeworkProgress[prevDay];
+
+    if (prevDay > 0) {
+        if (!prevStatus) {
+            textElement.innerHTML = `Чтобы открыть <b>День ${lockedDayNum}</b>, вам необходимо отправить Домашнее задание за <b>День ${prevDay}</b>.`;
+        } else if (prevStatus.toLowerCase().includes("на проверке")) {
+            textElement.innerHTML = `Ваше Домашнее задание за <b>День ${prevDay}</b> находится <b>на проверке</b>.<br><br>Пожалуйста, подождите, пока преподаватель не проверит его.`;
+        } else {
+            textElement.innerHTML = `Доступ к <b>Дню ${lockedDayNum}</b> пока закрыт.`;
+        }
+    } else {
+        textElement.innerHTML = `Нельзя перескочить, не пройдя предыдущий день.`;
+    }
+
+    modal.classList.add('visible');
+}
+
+function closeWarningModal() {
+    document.getElementById('warning-modal').classList.remove('visible');
+}
+
+
 // --- СБРОС ---
 function confirmReset() {
-    if (confirm("Вы точно хотите сбросить прогресс чтения? Открытые дни останутся.")) {
+    if (confirm("Вы точно хотите сбросить прогресс и выйти?")) {
         readDays = [];
         localStorage.removeItem('elli_progress');
-        renderGrid();
+        localStorage.removeItem('userEmail');
+        location.reload();
     }
 }
 
@@ -394,10 +386,9 @@ async function submitHomework() {
     }
 
     const userEmail = localStorage.getItem('userEmail') || 'unknown';
-    const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeWSIbgIuXZj6on2JyfDx-ywpWq9J9jey71IJh_XPJzShEAMGWs0wK8ndTq4xy1lNG/exec";
 
     try {
-        const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+        await fetch(GOOGLE_APP_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -413,6 +404,9 @@ async function submitHomework() {
         
         document.getElementById('homework-status').style.display = 'block';
         document.getElementById('homework-input').value = '';
+        
+        // Локально обновляем прогресс
+        userHomeworkProgress[currentDayNum] = "На проверке";
     } catch (error) {
         console.error("Ошибка при отправке ДЗ:", error);
         alert("Произошла ошибка при отправке. Пожалуйста, попробуйте позже.");
