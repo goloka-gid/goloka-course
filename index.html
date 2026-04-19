@@ -29,7 +29,7 @@
 
     <div id="start-screen" class="view-section active-view" style="text-align: center; padding: 40px 20px;">
         <div class="logo" style="font-size: 48px; margin-bottom: 20px;">Г</div>
-        <h1>Медитация с Элли</h1>
+        <h1>ГОЛОКА</h1>
         <p class="subtitle" style="margin-bottom: 5px;">Детский сказочный курс</p>
         <p class="subtitle" style="font-size: 14px; opacity: 0.8; margin-bottom: 30px;">Пробуждение через сказки</p>
         
@@ -149,11 +149,15 @@
                     <h3 id="audio-title" style="color: var(--accent); margin-top:0; font-size: 16px;">🎧 Слушать</h3>
                     <audio id="audio-player" controls></audio>
                 </div>
+                
                 <div class="section-box" id="homework-box" style="display:none;">
                     <h3 style="color: var(--accent); margin-top:0; font-size: 16px;">✍️ Домашнее задание</h3>
                     <div id="homework-text" style="margin-bottom: 15px; font-size: 14px; color: #555;">Загрузка задания...</div>
-                    <textarea id="homework-input" placeholder="Напишите ваш ответ здесь..." style="width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; font-family: inherit; resize: vertical; box-sizing: border-box;"></textarea>
-                    <button onclick="submitHomework()" class="access-btn" style="margin-top: 15px;">Отправить на проверку</button>
+                    
+                    <!-- Контейнер для динамических полей ввода -->
+                    <div id="homework-inputs-container"></div>
+                    
+                    <button id="homework-submit-btn" class="access-btn" onclick="submitHomework()" style="margin-top: 15px;">Отправить на проверку</button>
                     <p id="homework-status" style="margin-top: 10px; font-size: 14px; text-align: center; color: #28a745; display: none;">Задание отправлено!</p>
                 </div>
 
