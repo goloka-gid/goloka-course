@@ -41,15 +41,10 @@ async function fetchProgress(email) {
     if(document.getElementById('resume-btn')) document.getElementById('resume-btn').style.display = 'none';
 
     try {
-        // Добавляем timestamp (t=...), чтобы мобильный браузер не кэшировал GET-запрос
+        // Добавляем timestamp (t=...), чтобы мобильный браузер не кэшировал GET-запрос.
+        // Заголовки (headers) удалены, так как Google Apps Script блокирует их по политике CORS.
         const timestamp = new Date().getTime();
-        const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getProgress&email=${encodeURIComponent(email)}&t=${timestamp}`, {
-            cache: 'no-store',
-            headers: {
-                'Pragma': 'no-cache',
-                'Cache-Control': 'no-cache'
-            }
-        });
+        const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getProgress&email=${encodeURIComponent(email)}&t=${timestamp}`);
         const data = await response.json();
         
         if (data && data.progress) {
