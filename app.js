@@ -5,7 +5,6 @@ let readDays = JSON.parse(localStorage.getItem('elli_progress')) || [];
 let unlockedDays = [1]; 
 
 let userHomeworkProgress = {}; 
-// ВНИМАНИЕ: ВСТАВЬТЕ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT:
 const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwQfK1nmnK5TrqxabtXqO-Kum4QxKW65HOV4_gDGqWf8Gkr7CPtACDnikFJpNptog_/exec";
 
 let isScrolling = false;
@@ -41,8 +40,6 @@ async function fetchProgress(email) {
     if(document.getElementById('resume-btn')) document.getElementById('resume-btn').style.display = 'none';
 
     try {
-        // Добавляем timestamp (t=...), чтобы мобильный браузер не кэшировал GET-запрос.
-        // Заголовки (headers) удалены, так как Google Apps Script блокирует их по политике CORS.
         const timestamp = new Date().getTime();
         const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=getProgress&email=${encodeURIComponent(email)}&t=${timestamp}`);
         const data = await response.json();
@@ -163,6 +160,7 @@ async function openContent(type) {
     const audioPlayer = document.getElementById('audio-player');
     const audioTitle = document.getElementById('audio-title');
     const mainImage = document.getElementById('main-image');
+    const scrollBtn = document.getElementById('scroll-btn');
 
     videoPlayer.pause();
     audioPlayer.pause();
@@ -175,6 +173,7 @@ async function openContent(type) {
     if (homeworkBox) homeworkBox.style.display = 'none';
     
     textDisplay.innerHTML = ""; 
+    scrollBtn.classList.remove('visible');
 
     const filePrefix = currentDayNum === 'final' ? 'final' : `day${currentDayNum}`;
 
@@ -334,6 +333,37 @@ async function openContent(type) {
     }
 }
 
+async function openInstructions() {
+    switchView('view-content');
+    stopScroll();
+
+    document.getElementById('header-title').innerText = "❓ Инструкция";
+    document.getElementById('video-area').style.display = 'none';
+    document.getElementById('audio-box').style.display = 'none';
+    document.getElementById('main-image').style.display = 'none';
+    
+    const homeworkBox = document.getElementById('homework-box');
+    if (homeworkBox) homeworkBox.style.display = 'none';
+    
+    document.getElementById('text-box').style.display = 'block';
+    const textDisplay = document.getElementById('text-display');
+    const scrollBtn = document.getElementById('scroll-btn');
+
+    textDisplay.innerHTML = "Загрузка...";
+    try {
+        const response = await fetch('texts/instructions.html');
+        if (response.ok) {
+            const html = await response.text();
+            textDisplay.innerHTML = html;
+        } else {
+            textDisplay.innerHTML = "<p style='text-align:center'>Инструкция скоро появится.</p>";
+        }
+    } catch (e) {
+        textDisplay.innerHTML = "<p style='text-align:center'>Инструкция пока недоступна.</p>";
+    }
+    if (scrollBtn) scrollBtn.classList.add('visible');
+}
+
 function switchView(viewId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
     document.getElementById(viewId).classList.add('active-view');
@@ -351,13 +381,28 @@ function formatText(text, dayNum) {
 function goBackToMenu() {
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
-    switchView('view-menu');
+    
+    if (document.getElementById('header-title').innerText === "❓ Инструкция") {
+        // Если пользователь залогинен, возвращаем на сетку, иначе на стартовый экран
+        if (localStorage.getItem('userEmail')) {
+            goHome();
+        } else {
+            switchView('start-screen');
+        }
+    } else {
+        switchView('view-menu');
+    }
 }
 
 function goHome() {
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
-    switchView('view-grid');
+    
+    if (document.getElementById('header-title').innerText === "❓ Инструкция" && !localStorage.getItem('userEmail')) {
+        switchView('start-screen');
+    } else {
+        switchView('view-grid');
+    }
 }
 
 function stopScroll() {} 
