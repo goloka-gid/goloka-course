@@ -123,9 +123,10 @@
 
     <div id="view-content" class="view-section">
         <div class="header-fixed">
-            <button class="nav-btn" onclick="goHome()">🏠 Дни</button>
+            <button id="nav-btn-home" class="nav-btn" onclick="goHome()">🏠 Дни</button>
             <span id="header-title" style="font-size:12px; font-weight:bold; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-            <button class="nav-btn" onclick="goBackToMenu()">🔙 Меню</button>
+            <button id="nav-btn-back" class="nav-btn" onclick="goBackToMenu()">🔙 Меню</button>
+            <button id="nav-btn-close-instruction" class="nav-btn" style="display:none;" onclick="closeInstructions()">❌ Закрыть</button>
         </div>
 
         <div class="scroll-wrapper" id="scroll-box">
