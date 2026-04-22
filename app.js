@@ -152,6 +152,11 @@ async function openContent(type) {
     container.scrollTop = 0;
     const titleLabel = document.getElementById('header-title');
     
+    // Показываем обычные кнопки навигации (меню, домой) и прячем кнопку закрытия инструкции
+    document.getElementById('nav-btn-home').style.display = 'inline-block';
+    document.getElementById('nav-btn-back').style.display = 'inline-block';
+    document.getElementById('nav-btn-close-instruction').style.display = 'none';
+    
     const videoArea = document.getElementById('video-area');
     const videoPlayer = document.getElementById('video-player');
     const textBox = document.getElementById('text-box');
@@ -185,20 +190,7 @@ async function openContent(type) {
         audioBox.style.display = 'block';
         audioPlayer.src = `audios/day${currentDayNum}.mp3`;
         
-        textBox.style.display = 'block';
-        textDisplay.innerHTML = "Загрузка текста...";
-        
-        try {
-            const response = await fetch(`texts/day${currentDayNum}.html`);
-            if (response.ok) {
-                const text = await response.text();
-                textDisplay.innerHTML = formatText(text, currentDayNum);
-            } else {
-                textDisplay.innerHTML = "Текст скоро появится.";
-            }
-        } catch (e) {
-            textDisplay.innerHTML = "Текст скоро появится.";
-        }
+        await loadTextContent(`texts/${filePrefix}_story.html`);
         return;
     }
     
@@ -322,9 +314,20 @@ async function openContent(type) {
 
     else {
         audioBox.style.display = 'block';
-        if (type === 'song') { titleLabel.innerText = "🎵 Песенка"; audioPlayer.src = `audios/${filePrefix}_song.mp3`; }
-        if (type === 'child') { titleLabel.innerText = "👶 Детская практика"; audioPlayer.src = `audios/${filePrefix}_child.mp3`; }
-        if (type === 'adult') { titleLabel.innerText = "🧘 Взрослая практика"; audioPlayer.src = `audios/${filePrefix}_adult.mp3`; }
+        if (type === 'song') { 
+            titleLabel.innerText = "🎵 Песенка"; 
+            audioPlayer.src = `audios/${filePrefix}_song.mp3`; 
+        }
+        if (type === 'child') { 
+            titleLabel.innerText = "👶 Детская практика"; 
+            audioPlayer.src = `audios/${filePrefix}_child.mp3`; 
+            await loadTextContent(`texts/${filePrefix}_child.html`);
+        }
+        if (type === 'adult') { 
+            titleLabel.innerText = "🧘 Взрослая практика"; 
+            audioPlayer.src = `audios/${filePrefix}_adult.mp3`; 
+            await loadTextContent(`texts/${filePrefix}_adult.html`);
+        }
 
         mainImage.src = `images/${filePrefix}_${type}.jpg`;
         mainImage.style.display = 'block';
@@ -338,6 +341,12 @@ async function openInstructions() {
     stopScroll();
 
     document.getElementById('header-title').innerText = "❓ Инструкция";
+    
+    // Прячем обычные кнопки и показываем кнопку закрытия
+    document.getElementById('nav-btn-home').style.display = 'none';
+    document.getElementById('nav-btn-back').style.display = 'none';
+    document.getElementById('nav-btn-close-instruction').style.display = 'inline-block';
+    
     document.getElementById('video-area').style.display = 'none';
     document.getElementById('audio-box').style.display = 'none';
     document.getElementById('main-image').style.display = 'none';
@@ -364,6 +373,17 @@ async function openInstructions() {
     if (scrollBtn) scrollBtn.classList.add('visible');
 }
 
+function closeInstructions() {
+    document.getElementById('audio-player').pause();
+    document.getElementById('video-player').pause();
+    
+    if (localStorage.getItem('userEmail')) {
+        switchView('view-grid');
+    } else {
+        switchView('start-screen');
+    }
+}
+
 function switchView(viewId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
     document.getElementById(viewId).classList.add('active-view');
@@ -378,31 +398,33 @@ function formatText(text, dayNum) {
     return html;
 }
 
+// Загрузка текста и форматирование картинок
+async function loadTextContent(url) {
+    const textBox = document.getElementById('text-box');
+    const textDisplay = document.getElementById('text-display');
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error();
+        let html = await response.text();
+        html = formatText(html, currentDayNum);
+        textDisplay.innerHTML = html;
+        textBox.style.display = 'block';
+    } catch (e) {
+        textBox.style.display = 'block';
+        textDisplay.innerHTML = "<p style='text-align:center'>Текст пока недоступен.</p>";
+    }
+}
+
 function goBackToMenu() {
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
-    
-    if (document.getElementById('header-title').innerText === "❓ Инструкция") {
-        // Если пользователь залогинен, возвращаем на сетку, иначе на стартовый экран
-        if (localStorage.getItem('userEmail')) {
-            goHome();
-        } else {
-            switchView('start-screen');
-        }
-    } else {
-        switchView('view-menu');
-    }
+    switchView('view-menu');
 }
 
 function goHome() {
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
-    
-    if (document.getElementById('header-title').innerText === "❓ Инструкция" && !localStorage.getItem('userEmail')) {
-        switchView('start-screen');
-    } else {
-        switchView('view-grid');
-    }
+    switchView('view-grid');
 }
 
 function stopScroll() {} 
