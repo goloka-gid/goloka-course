@@ -378,7 +378,7 @@ function closeInstructions() {
     document.getElementById('video-player').pause();
     
     if (localStorage.getItem('userEmail')) {
-        switchView('view-grid');
+        switchView('start-screen');
     } else {
         switchView('start-screen');
     }
