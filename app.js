@@ -188,9 +188,11 @@ async function openContent(type) {
         document.getElementById('main-image').style.display = 'block';
         
         audioBox.style.display = 'block';
-        audioPlayer.src = `audios/day${currentDayNum}.mp3`;
+        audioTitle.innerText = "🎧 Слушать историю";
+        audioPlayer.src = `audio/day${currentDayNum}.mp3`;
         
         await loadTextContent(`texts/${filePrefix}_story.html`);
+        scrollBtn.classList.add('visible');
         return;
     }
     
@@ -312,27 +314,42 @@ async function openContent(type) {
         return;
     }
 
-    else {
-        audioBox.style.display = 'block';
-        if (type === 'song') { 
-            titleLabel.innerText = "🎵 Песенка"; 
-            audioPlayer.src = `audios/${filePrefix}_song.mp3`; 
-        }
-        if (type === 'child') { 
-            titleLabel.innerText = "👶 Детская практика"; 
-            audioPlayer.src = `audios/${filePrefix}_child.mp3`; 
-            await loadTextContent(`texts/${filePrefix}_child.html`);
-        }
-        if (type === 'adult') { 
-            titleLabel.innerText = "🧘 Взрослая практика"; 
-            audioPlayer.src = `audios/${filePrefix}_adult.mp3`; 
-            await loadTextContent(`texts/${filePrefix}_adult.html`);
-        }
-
-        mainImage.src = `images/${filePrefix}_${type}.jpg`;
+    else if (type === 'song') {
+        titleLabel.innerText = "🎵 Песенка";
+        const imgName = currentDayNum === 'final' ? 'final' : `day${currentDayNum}`;
+        mainImage.src = `images/${imgName}.jpg`;
         mainImage.style.display = 'block';
         
+        audioBox.style.display = 'block';
+        audioTitle.innerText = "🎧 Слушать песенку";
+        audioPlayer.src = `audio/${filePrefix}_song.mp3`;
+        
         audioPlayer.play().catch(e=>console.log(e));
+        return;
+    }
+    else if (type === 'child') {
+        titleLabel.innerText = "👶 Практика (Дети)";
+        await loadTextContent(`texts/${filePrefix}_child.html`);
+        
+        audioBox.style.display = 'block';
+        audioTitle.innerText = "🎧 Слушать практику";
+        audioPlayer.src = `audio/${filePrefix}_child.mp3`;
+        scrollBtn.classList.add('visible');
+        
+        audioPlayer.play().catch(e=>console.log(e));
+        return;
+    }
+    else if (type === 'adult') {
+        titleLabel.innerText = "🧘‍♀️ Практика (Взр)";
+        await loadTextContent(`texts/${filePrefix}_adult.html`);
+        
+        audioBox.style.display = 'block';
+        audioTitle.innerText = "🎧 Слушать практику";
+        audioPlayer.src = `audio/${filePrefix}_adult.mp3`;
+        scrollBtn.classList.add('visible');
+        
+        audioPlayer.play().catch(e=>console.log(e));
+        return;
     }
 }
 
@@ -374,6 +391,7 @@ async function openInstructions() {
 }
 
 function closeInstructions() {
+    stopScroll();
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
     
@@ -394,6 +412,14 @@ function formatText(text, dayNum) {
     let html = text.replace(/\[IMAGE(\d*)\]/g, (match, p1) => {
         const suffix = p1 ? `_${p1}` : ''; 
         return `<img src="images/day${dayNum}${suffix}.jpg" class="book-media" onerror="this.style.display='none'">`;
+    });
+    html = html.replace(/\[GIF(\d*)\]/g, (match, p1) => {
+        const suffix = p1 ? `_${p1}` : '';
+        return `<img src="images/day${dayNum}${suffix}.gif" class="book-media" onerror="this.style.display='none'">`;
+    });
+    html = html.replace(/\[VID(\d*)\]/g, (match, p1) => {
+        const suffix = p1 ? `_${p1}` : '';
+        return `<video src="videos/day${dayNum}${suffix}.mp4" class="book-media" autoplay muted loop playsinline onerror="this.style.display='none'"></video>`;
     });
     return html;
 }
@@ -416,18 +442,44 @@ async function loadTextContent(url) {
 }
 
 function goBackToMenu() {
+    stopScroll();
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
     switchView('view-menu');
 }
 
 function goHome() {
+    stopScroll();
     document.getElementById('audio-player').pause();
     document.getElementById('video-player').pause();
     switchView('view-grid');
 }
 
-function stopScroll() {} 
+function toggleAutoScroll() {
+    const container = document.getElementById('scroll-box');
+    const btn = document.getElementById('scroll-btn');
+    
+    if (isScrolling) {
+        clearInterval(scrollInterval);
+        btn.classList.remove('active');
+    } else {
+        scrollInterval = setInterval(() => {
+            container.scrollTop += 1; 
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
+                stopScroll();
+            }
+        }, 35);
+        btn.classList.add('active');
+    }
+    isScrolling = !isScrolling;
+}
+
+function stopScroll() {
+    clearInterval(scrollInterval);
+    isScrolling = false;
+    const btn = document.getElementById('scroll-btn');
+    if(btn) btn.classList.remove('active');
+}
 
 // --- МОДАЛЬНЫЕ ОКНА И ЛОГИКА ДОСТУПА ---
 
