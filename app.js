@@ -189,7 +189,7 @@ async function openContent(type) {
         
         audioBox.style.display = 'block';
         audioTitle.innerText = "🎧 Слушать историю";
-        audioPlayer.src = `audio/day${currentDayNum}.mp3`;
+        audioPlayer.src = `audio/${filePrefix}_story.mp3`;
         
         await loadTextContent(`texts/${filePrefix}_story.html`);
         scrollBtn.classList.add('visible');
