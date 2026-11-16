@@ -111,7 +111,7 @@ function renderGrid() {
             currentDayNum = 'final';
             switchView('view-menu');
             document.getElementById('menu-title').innerText = "🏆 Вершина Пути";
-            loadContent('final');
+            loadContent('story');
         };
 
         finalCard.innerHTML = `
